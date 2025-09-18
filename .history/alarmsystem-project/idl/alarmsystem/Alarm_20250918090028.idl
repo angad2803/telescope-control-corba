@@ -1,0 +1,39 @@
+module alarmsystem {
+  // ALMA-compliant Timestamp structure
+  struct Timestamp {
+    long long miliseconds;  // milliseconds since January 1, 1970, 00:00:00 GMT
+    long nanos;
+  };
+  
+  // ALMA-compliant Status structure (simplified)
+  struct Status {
+    boolean active;
+    boolean masked;
+    boolean reduced;
+    Timestamp sourceTimestamp;
+    string sourceHostname;
+  };
+  
+  // ALMA-compliant Alarm structure (simplified subset)
+  struct Alarm {
+    string alarmId;
+    string problemDescription;
+    long priority;
+    string cause;
+    string action;
+    string consequence;
+    string helpURL;
+    Status alarmStatus;
+  };
+  
+  // ALMA-compliant Service Interface (simplified subset)
+  interface CERNAlarmService {
+    // Core retrieval functions matching ALMA standard
+    Alarm getAlarmById(in string id);
+    string getAction();          // Our original simple methods for compatibility
+    string getAlarmId();
+    long getPriority();
+    string getStatus();
+    string getHelpURL();
+  };
+};

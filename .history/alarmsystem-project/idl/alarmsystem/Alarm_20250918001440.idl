@@ -1,0 +1,9 @@
+module alarmsystem {
+  interface Alarm {
+    string getAction();
+    string getAlarmId();
+    long getPriority();
+    string getStatus();
+    string getHelpURL();
+  };
+};

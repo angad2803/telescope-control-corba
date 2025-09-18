@@ -1,0 +1,84 @@
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const { spawn } = require('child_process');
+
+const app = express();
+const PORT = 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Mock alarm data (since we can't directly call CORBA from Node.js easily)
+const mockAlarmData = {
+    id: "ALARM-001",
+    action: "Trigger cooling system", 
+    priority: 5,
+    status: "ACTIVE",
+    helpURL: "http://docs.example.com/alarm-help"
+};
+
+// Alternative: Call Java CORBA client as a subprocess
+function getAlarmDataFromCorba() {
+    return new Promise((resolve, reject) => {
+        const path = require('path');
+        const javaClasspath = path.join(__dirname, '..', 'corba-server', 'target', 'classes');
+        const workingDir = path.join(__dirname, '..', 'corba-server');
+        
+        const javaProcess = spawn('java', [
+            '-cp', javaClasspath,
+            'alarmsystem.CorbaClient'
+        ], {
+            cwd: workingDir,
+            stdio: ['pipe', 'pipe', 'pipe']
+        });
+        
+        let output = '';
+        let errorOutput = '';
+        
+        javaProcess.stdout.on('data', (data) => {
+            output += data.toString();
+        });
+        
+        javaProcess.stderr.on('data', (data) => {
+            errorOutput += data.toString();
+        });
+        
+        javaProcess.on('close', (code) => {
+            if (code === 0) {
+                try {
+                    const alarmData = JSON.parse(output.trim());
+                    resolve(alarmData);
+                } catch (parseError) {
+                    console.error('Failed to parse JSON:', output);
+                    reject(new Error('Failed to parse CORBA response'));
+                }
+            } else {
+                console.error('Java process failed:', errorOutput);
+                reject(new Error(`CORBA connection failed: ${errorOutput}`));
+            }
+        });
+    });
+}
+
+// REST endpoint
+app.get('/alarm', async (req, res) => {
+    try {
+        const alarmData = await getAlarmDataFromCorba();
+        res.json(alarmData);
+    } catch (error) {
+        console.error('Error getting alarm data:', error);
+        res.status(500).json({ error: 'Failed to get alarm data' });
+    }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', service: 'Alarm Express Bridge' });
+});
+
+app.listen(PORT, () => {
+    console.log(`Express Alarm Bridge running on port ${PORT}`);
+    console.log(`Alarm endpoint: http://localhost:${PORT}/alarm`);
+});

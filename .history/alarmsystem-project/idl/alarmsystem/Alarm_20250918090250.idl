@@ -1,0 +1,11 @@
+module alarmsystem {
+  // Using ALMA function naming conventions
+  interface CERNAlarmService {
+    // ALMA-style method for getting alarm by ID
+    string getAlarmById(in string id);
+    string getAction();
+    long getPriority();
+    string getStatus();
+    string getHelpURL();
+  };
+};

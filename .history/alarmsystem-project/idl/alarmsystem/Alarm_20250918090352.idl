@@ -1,0 +1,11 @@
+module alarmsystem {
+  interface Alarm {
+    // ALMA-style method matching their getAlarmById(in string id) signature
+    string getAlarmById(in string id);
+    string getAction();
+    string getAlarmId();
+    long getPriority();
+    string getStatus();
+    string getHelpURL();
+  };
+};

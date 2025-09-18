@@ -1,0 +1,7 @@
+// Alarm.idl
+// Define your CORBA Alarm interface here
+module alarmsystem {
+    interface Alarm {
+        void triggerAlarm(string message);
+    };
+};
